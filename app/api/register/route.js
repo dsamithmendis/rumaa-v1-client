@@ -1,5 +1,5 @@
-import connectDB from "@/app/lib/mongodb";
-import Contact from "@/app/models/contact";
+import connectDB from "@/components/lib/mongodb";
+import Register from "@/components/models/register";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
@@ -8,7 +8,7 @@ export async function POST(req) {
 
   try {
     await connectDB();
-    await Contact.create({ fullname, email, message });
+    await Register.create({ fullname, email, message });
 
     return NextResponse.json({
       msg: ["Message sent successfully"],

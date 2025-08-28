@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-const contactSchema = new Schema({
+const RegisterSchema = new Schema({
     fullname: {
         type: String,
         required: [true, "Name is required."],
@@ -28,8 +28,8 @@ const contactSchema = new Schema({
 
 });
 
-const Contact =
-    mongoose.models.Contact || mongoose.model("Contact-data", contactSchema);
+const Register =
+    mongoose.models.Register || mongoose.model("Register-data", RegisterSchema);
 
 
-export default Contact;
+export default Register;
