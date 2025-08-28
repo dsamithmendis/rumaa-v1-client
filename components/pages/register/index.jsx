@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function ContactForm() {
+export default function RegisterForm() {
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -16,7 +16,7 @@ export default function ContactForm() {
     console.log("Email: ", email);
     console.log("Message: ", message);
 
-    const res = await fetch("api/contact", {
+    const res = await fetch("api/register", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
