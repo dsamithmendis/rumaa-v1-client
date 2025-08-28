@@ -1,43 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useRegisterForm } from "@/components/hooks/useRegisterForm";
 
 export default function RegisterForm() {
-  const [fullname, setFullname] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState([]);
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    console.log("Full name: ", fullname);
-    console.log("Email: ", email);
-    console.log("Message: ", message);
-
-    const res = await fetch("api/register", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
-        fullname,
-        email,
-        message,
-      }),
-    });
-
-    const { msg, success } = await res.json();
-    setError(msg);
-    setSuccess(success);
-
-    if (success) {
-      setFullname("");
-      setEmail("");
-      setMessage("");
-    }
-  };
+  const {
+    fullname,
+    email,
+    message,
+    error,
+    success,
+    setFullname,
+    setEmail,
+    setMessage,
+    handleSubmit,
+  } = useRegisterForm();
 
   return (
     <>
