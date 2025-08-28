@@ -4,14 +4,14 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  const { fullname, email, message } = await req.json();
+  const { username, name, surname, mobile, email, password, gender, city } = await req.json();
 
   try {
     await connectDB();
-    await Register.create({ fullname, email, message });
+    await Register.create({ username, name, surname, mobile, email, password, gender, city });
 
     return NextResponse.json({
-      msg: ["Message sent successfully"],
+      msg: ["Registered successfully"],
       success: true,
     });
   } catch (error) {
@@ -23,7 +23,7 @@ export async function POST(req) {
       console.log(errorList);
       return NextResponse.json({ msg: errorList, success: false });
     } else {
-      return NextResponse.json({ msg: ["Unable to send message."], success: false });
+      return NextResponse.json({ msg: ["Unable to register user."], success: false });
     }
   }
 }

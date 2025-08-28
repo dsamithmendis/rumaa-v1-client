@@ -2,24 +2,53 @@
 import { useState } from "react";
 
 export function useRegisterForm() {
-  const [fullname, setFullname] = useState("");
+  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  const [password, setPassword] = useState("");
+  const [rePassword, setRePassword] = useState("");
+  const [gender, setGender] = useState("");
+  const [city, setCity] = useState("");
   const [error, setError] = useState<string[]>([]);
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("Full name: ", fullname);
-    console.log("Email: ", email);
-    console.log("Message: ", message);
+    // frontend validation
+    const newErrors: string[] = [];
+    if (!username) newErrors.push("Username is required");
+    if (!name) newErrors.push("Name is required");
+    if (!surname) newErrors.push("Surname is required");
+    if (!mobile) newErrors.push("Mobile number is required");
+    if (!email) newErrors.push("Email is required");
+    if (!password) newErrors.push("Password is required");
+    if (password !== rePassword) newErrors.push("Passwords do not match");
+    if (!gender) newErrors.push("Gender is required");
+    if (!city) newErrors.push("City is required");
+
+    if (newErrors.length > 0) {
+      setError(newErrors);
+      setSuccess(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/register", {
         method: "POST",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ fullname, email, message }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          name,
+          surname,
+          mobile,
+          email,
+          password,
+          gender,
+          city,
+        }),
       });
 
       const { msg, success } = await res.json();
@@ -27,9 +56,15 @@ export function useRegisterForm() {
       setSuccess(success);
 
       if (success) {
-        setFullname("");
+        setUsername("");
+        setName("");
+        setSurname("");
+        setMobile("");
         setEmail("");
-        setMessage("");
+        setPassword("");
+        setRePassword("");
+        setGender("");
+        setCity("");
       }
     } catch (err) {
       setError(["Something went wrong. Try again later."]);
@@ -38,14 +73,26 @@ export function useRegisterForm() {
   };
 
   return {
-    fullname,
+    username,
+    name,
+    surname,
+    mobile,
     email,
-    message,
+    password,
+    rePassword,
+    gender,
+    city,
     error,
     success,
-    setFullname,
+    setUsername,
+    setName,
+    setSurname,
+    setMobile,
     setEmail,
-    setMessage,
+    setPassword,
+    setRePassword,
+    setGender,
+    setCity,
     handleSubmit,
   };
 }
