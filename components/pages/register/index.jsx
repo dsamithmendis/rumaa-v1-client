@@ -8,7 +8,7 @@ import {
   passwordLabels,
 } from "@/components/lib/register-data";
 
-export default function RegisterForm() {
+export default function RegisterPage() {
   const {
     username,
     name,
