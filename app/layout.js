@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: {
-    default: "Home | Rumaa",
+    default: "Welcome | Rumaa",
     template: "%s | Rumaa",
   },
   description: "Sri Lankan E-commerce Platform",
