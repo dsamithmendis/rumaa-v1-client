@@ -9,19 +9,31 @@ export function useLoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
-      if (username === "admin" && password === "admin") {
-        router.push("/home");
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Invalid username or password");
       } else {
-        setError("Invalid username or password");
+        router.push("/home");
       }
     } catch (err) {
-      setError(err?.message || "Something went wrong");
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,6 +41,7 @@ export function useLoginForm() {
     username,
     password,
     error,
+    loading,
     setUsername,
     setPassword,
     handleSubmit,

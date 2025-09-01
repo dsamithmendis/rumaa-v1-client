@@ -17,7 +17,6 @@ export function useRegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // frontend validation
     const newErrors: string[] = [];
     if (!username) newErrors.push("Username is required");
     if (!name) newErrors.push("Name is required");

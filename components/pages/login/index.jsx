@@ -1,10 +1,40 @@
 "use client";
 
-import { useLoginForm } from "@/components/hooks/useLoginForm";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const { username, password, error, setUsername, setPassword, handleSubmit } =
-    useLoginForm();
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Invalid username or password");
+      } else {
+        router.push("/home");
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-0 py-10">
@@ -16,7 +46,6 @@ export default function LoginPage() {
           Login
         </h2>
 
-        {/* Username */}
         <div className="relative">
           <input
             type="text"
@@ -31,7 +60,6 @@ export default function LoginPage() {
           </label>
         </div>
 
-        {/* Password */}
         <div className="relative">
           <input
             type="password"
@@ -46,15 +74,14 @@ export default function LoginPage() {
           </label>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-green-700 text-white py-3 rounded-md font-semibold hover:bg-green-800 transition-colors mt-3 text-sm sm:text-base hover:cursor-pointer"
+          disabled={loading}
+          className="w-full bg-green-700 text-white py-3 rounded-md font-semibold hover:bg-green-800 transition-colors mt-3 text-sm sm:text-base hover:cursor-pointer disabled:opacity-50"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
-        {/* Error */}
         {error && (
           <p className="text-red-600 text-sm sm:text-base mt-3">{error}</p>
         )}
