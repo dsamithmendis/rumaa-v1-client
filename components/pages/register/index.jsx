@@ -39,12 +39,10 @@ export default function RegisterPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-md sm:max-w-xl p-6 sm:p-10 bg-white rounded-xl shadow-md flex flex-col gap-6"
       >
-        {/* Title */}
         <h2 className="text-2xl sm:text-3xl font-bold text-center text-green-700 mb-4 uppercase">
           Register
         </h2>
 
-        {/* Username */}
         <div className="relative">
           <input
             type="text"
@@ -59,7 +57,6 @@ export default function RegisterPage() {
           </label>
         </div>
 
-        {/* Name & Surname */}
         <div className="flex flex-col sm:flex-row gap-4">
           {nameLabels.map((label, i) => {
             const value = i === 0 ? name : surname;
@@ -82,7 +79,6 @@ export default function RegisterPage() {
           })}
         </div>
 
-        {/* Mobile */}
         <div className="relative">
           <input
             type="tel"
@@ -97,7 +93,6 @@ export default function RegisterPage() {
           </label>
         </div>
 
-        {/* Email */}
         <div className="relative">
           <input
             type="email"
@@ -112,7 +107,6 @@ export default function RegisterPage() {
           </label>
         </div>
 
-        {/* Password & Re-password */}
         <div className="flex flex-col sm:flex-row gap-4">
           {passwordLabels.map((label, i) => {
             const value = i === 0 ? password : rePassword;
@@ -135,7 +129,6 @@ export default function RegisterPage() {
           })}
         </div>
 
-        {/* Gender */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-2">
           <span className="text-neutral-500 text-sm sm:text-base">Gender:</span>
           <div className="flex gap-4 flex-wrap">
@@ -158,7 +151,6 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* City */}
         <div className="relative mt-2 text-neutral-500">
           <select
             value={city}
@@ -175,7 +167,6 @@ export default function RegisterPage() {
           </select>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           className="w-full bg-green-700 text-white py-3 rounded-md font-semibold hover:bg-green-800 transition-colors mt-3 text-sm sm:text-base hover:cursor-pointer"
@@ -183,7 +174,6 @@ export default function RegisterPage() {
           Register
         </button>
 
-        {/* Errors & Success */}
         {error.length > 0 && (
           <div className="bg-slate-100 p-3 rounded-md mt-3">
             {error.map((e, i) => (
