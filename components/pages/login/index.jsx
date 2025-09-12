@@ -24,13 +24,18 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.message || "Invalid username or password");
+      if (!res.ok || !data.success) {
+        const message =
+          data.msg && Array.isArray(data.msg)
+            ? data.msg.join(", ")
+            : data.message || "Invalid username or password";
+        setError(message);
       } else {
+        if (data.userID) localStorage.setItem("userID", data.userID);
         router.push("/home");
       }
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      setError(err?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

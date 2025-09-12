@@ -1,6 +1,8 @@
 "use client";
 
-import { useRegisterForm } from "@/components/hooks/useRegisterForm";
+import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import {
   cities,
   genders,
@@ -9,29 +11,75 @@ import {
 } from "@/components/lib/register-data";
 
 export default function RegisterPage() {
-  const {
-    username,
-    name,
-    surname,
-    mobile,
-    email,
-    password,
-    rePassword,
-    gender,
-    city,
-    error,
-    success,
-    setUsername,
-    setName,
-    setSurname,
-    setMobile,
-    setEmail,
-    setPassword,
-    setRePassword,
-    setGender,
-    setCity,
-    handleSubmit,
-  } = useRegisterForm();
+  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rePassword, setRePassword] = useState("");
+  const [gender, setGender] = useState("");
+  const [city, setCity] = useState("");
+  const [error, setError] = useState([]);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError([]);
+    setSuccess(false);
+
+    const newErrors = [];
+    if (!username) newErrors.push("Username is required");
+    if (!name) newErrors.push("Name is required");
+    if (!surname) newErrors.push("Surname is required");
+    if (!mobile) newErrors.push("Mobile number is required");
+    if (!email) newErrors.push("Email is required");
+    if (!password) newErrors.push("Password is required");
+    if (password !== rePassword) newErrors.push("Passwords do not match");
+    if (!gender) newErrors.push("Gender is required");
+    if (!city) newErrors.push("City is required");
+
+    if (newErrors.length > 0) {
+      setError(newErrors);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userID: uuidv4(),
+          username,
+          name,
+          surname,
+          mobile,
+          email,
+          password,
+          gender,
+          city,
+        }),
+      });
+
+      const data = await res.json();
+      setError(data.msg || []);
+      setSuccess(data.success);
+
+      if (data.success) {
+        setUsername("");
+        setName("");
+        setSurname("");
+        setMobile("");
+        setEmail("");
+        setPassword("");
+        setRePassword("");
+        setGender("");
+        setCity("");
+      }
+    } catch (err) {
+      setError(["Something went wrong. Please try again later."]);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-0 py-10">
@@ -175,20 +223,14 @@ export default function RegisterPage() {
         </button>
 
         {error.length > 0 && (
-          <div className="bg-slate-100 p-3 rounded-md mt-3">
+          <div className="bg-slate-100 p-3 rounded-md mt-3 text-red-600">
             {error.map((e, i) => (
-              <p
-                key={i}
-                className={
-                  success
-                    ? "text-green-700 text-sm sm:text-base"
-                    : "text-red-600 text-sm sm:text-base"
-                }
-              >
-                {e}
-              </p>
+              <p key={i}>{e}</p>
             ))}
           </div>
+        )}
+        {success && (
+          <p className="text-green-700 mt-3">Registered successfully!</p>
         )}
       </form>
     </div>
