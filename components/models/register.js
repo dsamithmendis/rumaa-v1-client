@@ -68,6 +68,8 @@ const RegisterSchema = new Schema({
   },
 });
 
-const Register = mongoose.models.Register || mongoose.model("register-data", RegisterSchema);
+const Register =
+  mongoose.models["register-data"] ||
+  mongoose.model("register-data", RegisterSchema);
 
 export default Register;
