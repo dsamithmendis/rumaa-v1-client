@@ -1,70 +1,136 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  RiHeartLine,
-  RiHeartFill,
-  RiChat3Line,
-  RiChat3Fill,
-  RiShareForwardLine,
-  RiSendPlaneFill,
-  RiUpload2Line,
-  RiCloseLine,
-} from "react-icons/ri";
+import { useState, useEffect, useRef } from "react";
+import { RiSendPlaneFill, RiUpload2Line, RiCloseLine } from "react-icons/ri";
+
+function SelectReceiver({ setReceiverID }) {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("/api/users");
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  return (
+    <select
+      onChange={(e) => setReceiverID(e.target.value)}
+      className="border rounded p-2 mb-4"
+    >
+      <option value="">Select a user</option>
+      {users.map((u) => (
+        <option key={u.userID} value={u.userID}>
+          {u.username}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 export default function Home() {
-  const router = useRouter();
   const [userID, setUserID] = useState(null);
 
   useEffect(() => {
     const storedUserID = localStorage.getItem("userID");
     if (!storedUserID) {
-      router.replace("/login");
+      alert("No user logged in!");
     } else {
       setUserID(storedUserID);
     }
-  }, [router]);
+  }, []);
 
   if (!userID) return null;
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Welcome to Rumaa</h1>
-      <p className="text-gray-600">Your one-stop solution for all your needs.</p>
-      <p className="text-sm text-gray-500">Logged in as: {userID}</p>
-
-      <PostContainer userID={userID} />
+    <div className="flex flex-col h-screen bg-gray-100 p-4">
+      <div className="mb-4 text-center">
+        <h1 className="text-2xl font-bold text-green-700">Rumaa Chat</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Logged in as: <span className="font-medium">{userID}</span>
+        </p>
+      </div>
+      <ChatBox userID={userID} />
     </div>
   );
 }
 
-function PostContainer({ userID }) {
-  const [liked, setLiked] = useState(false);
-  const [comment, setComment] = useState("");
-  const [showComment, setShowComment] = useState(false);
+function ChatBox({ userID }) {
+  const [receiverID, setReceiverID] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const scrollRef = useRef(null);
 
-  const handleLike = () => setLiked(!liked);
-  const handleCommentChange = (e) => setComment(e.target.value);
+  useEffect(() => {
+    if (!receiverID) return;
 
-  const handleSendComment = () => {
-    if (comment.trim() === "" && images.length === 0) return;
-    alert(`User ${userID} sent: ${comment}, ${images.length} image(s) attached`);
-    setComment("");
-    setImages([]);
-    setImagePreviews([]);
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(
+          `/api/messages?sender=${encodeURIComponent(
+            userID
+          )}&receiver=${encodeURIComponent(receiverID)}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch messages");
+        const data = await res.json();
+        setMessages(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 2000);
+    return () => clearInterval(interval);
+  }, [userID, receiverID]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!text.trim() && images.length === 0) return;
+    if (!receiverID) return alert("Select a receiver first!");
+
+    const newMsg = {
+      senderID: userID,
+      receiverID,
+      text,
+      images: [...imagePreviews],
+    };
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newMsg),
+      });
+      if (!res.ok) throw new Error("Failed to send message");
+      setText("");
+      setImages([]);
+      setImagePreviews([]);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleImageUpload = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files) {
       const filesArray = Array.from(e.target.files);
       setImages((prev) => [...prev, ...filesArray]);
-      const newPreviews = filesArray.map((file) =>
-        URL.createObjectURL(file)
-      );
-      setImagePreviews((prev) => [...prev, ...newPreviews]);
+      const previews = filesArray.map((file) => URL.createObjectURL(file));
+      setImagePreviews((prev) => [...prev, ...previews]);
       e.target.value = "";
     }
   };
@@ -74,30 +140,66 @@ function PostContainer({ userID }) {
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleShare = () => alert("Post shared!");
-  const toggleComment = () => setShowComment(!showComment);
-
   return (
-    <div className="border rounded-lg p-4 shadow-md max-w-md">
-      <div className="mb-4">
-        <textarea
-          placeholder="What's on your mind?"
-          className="w-full border rounded p-2 resize-none focus:outline-none focus:ring"
-          rows={3}
-        />
+    <div className="flex flex-col flex-1 border rounded-lg bg-white shadow p-4">
+      <SelectReceiver setReceiverID={setReceiverID} />
+
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-2 space-y-3 bg-gray-50 rounded"
+      >
+        {messages.map((msg) => (
+          <div
+            key={msg._id}
+            className={`flex flex-col max-w-[75%] ${
+              msg.senderID === userID
+                ? "ml-auto items-end"
+                : "mr-auto items-start"
+            }`}
+          >
+            <span className="text-xs text-gray-500 mb-1 font-medium">
+              {msg.senderID}
+            </span>
+
+            {msg.images?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-1">
+                {msg.images.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={img}
+                    alt="attachment"
+                    className="w-36 h-36 object-cover rounded-xl shadow-sm"
+                  />
+                ))}
+              </div>
+            )}
+
+            {msg.text && (
+              <div
+                className={`p-3 rounded-xl shadow-lg break-words ${
+                  msg.senderID === userID
+                    ? "bg-green-100 text-green-700 rounded-br-none"
+                    : "bg-gray-200 text-gray-900 rounded-bl-none"
+                }`}
+              >
+                <span>{msg.text}</span>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       {imagePreviews.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {imagePreviews.map((preview, index) => (
-            <div key={preview + index} className="relative">
+        <div className="flex p-2 gap-2 overflow-x-auto border-t bg-gray-50 rounded mt-2">
+          {imagePreviews.map((img, idx) => (
+            <div key={idx} className="relative">
               <img
-                src={preview}
-                alt={`Preview ${index}`}
-                className="w-32 h-32 object-cover rounded"
+                src={img}
+                alt="preview"
+                className="w-24 h-24 object-cover rounded-lg shadow-sm"
               />
               <button
-                onClick={() => removeImage(index)}
+                onClick={() => removeImage(idx)}
                 className="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100"
               >
                 <RiCloseLine size={16} />
@@ -107,38 +209,9 @@ function PostContainer({ userID }) {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex space-x-4">
-          <button
-            onClick={handleLike}
-            className="flex items-center space-x-1 text-red-500"
-          >
-            {liked ? <RiHeartFill size={24} /> : <RiHeartLine size={24} />}
-            <span>{liked ? "Liked" : "Like"}</span>
-          </button>
-
-          <button
-            onClick={toggleComment}
-            className={`flex items-center space-x-1 ${
-              showComment ? "text-blue-700 font-semibold" : "text-blue-500"
-            }`}
-          >
-            {showComment ? <RiChat3Fill size={24} /> : <RiChat3Line size={24} />}
-            <span>Comment</span>
-          </button>
-
-          <button
-            onClick={handleShare}
-            className="flex items-center space-x-1 text-green-500"
-          >
-            <RiShareForwardLine size={24} />
-            <span>Share</span>
-          </button>
-        </div>
-
-        <label className="cursor-pointer flex items-center space-x-1 text-gray-600 hover:text-gray-800">
-          <RiUpload2Line size={20} />
-          <span>Upload</span>
+      <div className="flex items-center p-3 border-t bg-gray-100 rounded-b-lg mt-2">
+        <label className="cursor-pointer mr-3 text-green-700 hover:text-green-800">
+          <RiUpload2Line size={26} />
           <input
             type="file"
             accept="image/*"
@@ -147,25 +220,20 @@ function PostContainer({ userID }) {
             onChange={handleImageUpload}
           />
         </label>
+        <input
+          type="text"
+          placeholder="Type a message..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="flex-1 border border-gray-300 rounded-full px-4 py-3 focus:outline-none focus:ring focus:border-green-300"
+        />
+        <button
+          onClick={handleSend}
+          className="ml-3 bg-green-700 hover:bg-green-800 text-white p-3 rounded-full flex items-center justify-center shadow"
+        >
+          <RiSendPlaneFill size={22} />
+        </button>
       </div>
-
-      {showComment && (
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            placeholder="Write a comment..."
-            value={comment}
-            onChange={handleCommentChange}
-            className="flex-1 border rounded p-2 focus:outline-none focus:ring"
-          />
-          <button
-            onClick={handleSendComment}
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 flex items-center justify-center"
-          >
-            <RiSendPlaneFill size={20} />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
