@@ -1,29 +1,41 @@
-import { NextResponse } from "next/server";
 import connectDB from "@/components/lib/mongodb";
 import Register from "@/components/models/register";
+import bcrypt from "bcryptjs";
 
 export async function POST(req) {
-    try {
-        const { username, password } = await req.json();
-        await connectDB();
-        const user = await Register.findOne({ username });
+  const { username, password } = await req.json();
 
-        if (!user || user.password !== password) {
-            return NextResponse.json(
-                { success: false, message: "Invalid username or password" },
-                { status: 401 }
-            );
-        }
+  try {
+    await connectDB();
 
-        return NextResponse.json(
-            { success: true, message: "Login successful" },
-            { status: 200 }
-        );
-
-    } catch (err) {
-        return NextResponse.json(
-            { success: false, message: err.message || "Server error" },
-            { status: 500 }
-        );
+    const user = await Register.findOne({ username });
+    if (!user) {
+      return new Response(
+        JSON.stringify({ msg: ["User not found"], success: false }),
+        { status: 404 }
+      );
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return new Response(
+        JSON.stringify({ msg: ["Invalid password"], success: false }),
+        { status: 401 }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        msg: ["Login successful"],
+        success: true,
+        userID: user._id.toString(),
+      }),
+      { status: 200 }
+    );
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ msg: ["Something went wrong"], success: false }),
+      { status: 500 }
+    );
+  }
 }

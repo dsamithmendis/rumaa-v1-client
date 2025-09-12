@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export function useRegisterForm() {
   const [username, setUsername] = useState("");
@@ -35,10 +36,13 @@ export function useRegisterForm() {
     }
 
     try {
+      const userID = uuidv4();
+
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          userID,
           username,
           name,
           surname,

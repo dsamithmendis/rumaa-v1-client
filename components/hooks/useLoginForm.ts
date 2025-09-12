@@ -11,7 +11,7 @@ export function useLoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -26,12 +26,16 @@ export function useLoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Invalid username or password");
+        const message =
+          (data.msg && Array.isArray(data.msg)
+            ? data.msg.join(", ")
+            : data.message) || "Invalid username or password";
+        setError(message);
       } else {
         router.push("/home");
       }
-    } catch (err) {
-      setError(err.message || "Something went wrong");
+    } catch (err: any) {
+      setError(err?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
