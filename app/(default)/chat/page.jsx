@@ -21,15 +21,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
       <div className="p-4 border-b border-gray-200 text-center">
         <h1 className="text-2xl font-bold text-green-700">Rumaa Chat</h1>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-neutral-400">
           Logged in as: <span className="font-medium">{userID}</span>
         </p>
       </div>
 
-      {/* ChatBox fills remaining screen */}
       <div className="flex-1">
         <ChatBox
           userID={userID}
