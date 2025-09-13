@@ -12,13 +12,13 @@ export function useRegisterForm() {
   const [rePassword, setRePassword] = useState("");
   const [gender, setGender] = useState("");
   const [city, setCity] = useState("");
-  const [error, setError] = useState<string[]>([]);
+  const [error, setError] = useState([]);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newErrors: string[] = [];
+    const newErrors = [];
     if (!username) newErrors.push("Username is required");
     if (!name) newErrors.push("Name is required");
     if (!surname) newErrors.push("Surname is required");
