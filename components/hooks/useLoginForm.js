@@ -11,7 +11,7 @@ export function useLoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -34,7 +34,7 @@ export function useLoginForm() {
       } else {
         router.push("/home");
       }
-    } catch (err: any) {
+    } catch (err) {
       setError(err?.message || "Something went wrong");
     } finally {
       setLoading(false);
