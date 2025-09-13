@@ -10,10 +10,12 @@ function SelectReceiver({ setReceiverID }) {
     const fetchUsers = async () => {
       try {
         const res = await fetch("/api/users");
+        if (!res.ok) throw new Error("Failed to fetch users");
         const data = await res.json();
-        setUsers(data);
+        setUsers(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Failed to fetch users", err);
+        console.error(err);
+        setUsers([]);
       }
     };
     fetchUsers();
@@ -34,33 +36,6 @@ function SelectReceiver({ setReceiverID }) {
   );
 }
 
-export default function Home() {
-  const [userID, setUserID] = useState(null);
-
-  useEffect(() => {
-    const storedUserID = localStorage.getItem("userID");
-    if (!storedUserID) {
-      alert("No user logged in!");
-    } else {
-      setUserID(storedUserID);
-    }
-  }, []);
-
-  if (!userID) return null;
-
-  return (
-    <div className="flex flex-col h-screen bg-gray-100 p-4">
-      <div className="mb-4 text-center">
-        <h1 className="text-2xl font-bold text-green-700">Rumaa Chat</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Logged in as: <span className="font-medium">{userID}</span>
-        </p>
-      </div>
-      <ChatBox userID={userID} />
-    </div>
-  );
-}
-
 function ChatBox({ userID }) {
   const [receiverID, setReceiverID] = useState("");
   const [messages, setMessages] = useState([]);
@@ -74,11 +49,7 @@ function ChatBox({ userID }) {
 
     const fetchMessages = async () => {
       try {
-        const res = await fetch(
-          `/api/messages?sender=${encodeURIComponent(
-            userID
-          )}&receiver=${encodeURIComponent(receiverID)}`
-        );
+        const res = await fetch(`/api/messages?receiverID=${receiverID}`);
         if (!res.ok) throw new Error("Failed to fetch messages");
         const data = await res.json();
         setMessages(data);
@@ -90,7 +61,7 @@ function ChatBox({ userID }) {
     fetchMessages();
     const interval = setInterval(fetchMessages, 2000);
     return () => clearInterval(interval);
-  }, [userID, receiverID]);
+  }, [receiverID]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -107,7 +78,7 @@ function ChatBox({ userID }) {
       senderID: userID,
       receiverID,
       text,
-      images: [...imagePreviews],
+      images: imagePreviews,
     };
 
     try {
@@ -117,6 +88,7 @@ function ChatBox({ userID }) {
         body: JSON.stringify(newMsg),
       });
       if (!res.ok) throw new Error("Failed to send message");
+
       setText("");
       setImages([]);
       setImagePreviews([]);
@@ -135,9 +107,9 @@ function ChatBox({ userID }) {
     }
   };
 
-  const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeImage = (idx) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
   };
 
   return (
@@ -182,7 +154,7 @@ function ChatBox({ userID }) {
                     : "bg-gray-200 text-gray-900 rounded-bl-none"
                 }`}
               >
-                <span>{msg.text}</span>
+                {msg.text}
               </div>
             )}
           </div>
@@ -234,6 +206,33 @@ function ChatBox({ userID }) {
           <RiSendPlaneFill size={22} />
         </button>
       </div>
+    </div>
+  );
+}
+
+export default function Home() {
+  const [userID, setUserID] = useState(null);
+
+  useEffect(() => {
+    const storedUserID = localStorage.getItem("userID");
+    if (!storedUserID) {
+      alert("No user logged in!");
+    } else {
+      setUserID(storedUserID);
+    }
+  }, []);
+
+  if (!userID) return null;
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-100 p-4">
+      <div className="mb-4 text-center">
+        <h1 className="text-2xl font-bold text-green-700">Rumaa Chat</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Logged in as: <span className="font-medium">{userID}</span>
+        </p>
+      </div>
+      <ChatBox userID={userID} />
     </div>
   );
 }
