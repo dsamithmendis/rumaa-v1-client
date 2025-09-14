@@ -1,5 +1,5 @@
 import connectDB from "@/components/lib/mongodb";
-import Message from "@/components/models/message";
+import Message from "@/components/models/messages";
 
 export async function GET(req) {
   try {
