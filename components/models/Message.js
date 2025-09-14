@@ -9,5 +9,5 @@ const MessageSchema = new Schema({
 });
 
 const Message =
-  mongoose.models.Message || mongoose.model("Message", MessageSchema);
+  mongoose.models.Message || mongoose.model("chat-data", MessageSchema);
 export default Message;
